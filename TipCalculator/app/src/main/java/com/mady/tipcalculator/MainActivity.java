@@ -1,27 +1,30 @@
 package com.mady.tipcalculator;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+import java.util.Objects;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText enteredAmount;
-    private SeekBar seekBar;
-    private Button calculateButton;
     private TextView totalResultTextView;
     private TextView textViewSeekbar;
     private TextView totalBill;
-    private  int seekBarPercentage;
-    private float enteredBillFloat;
+    private int seekBarPercentage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +34,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         enteredAmount = findViewById(R.id.billAmountId);
-        seekBar = findViewById(R.id.seekBar);
-        calculateButton = findViewById(R.id.calculateButton);
+        SeekBar seekBar = findViewById(R.id.seekBar);
+        Button calculateButton = findViewById(R.id.calculateButton);
         totalResultTextView = findViewById(R.id.resultID);
         textViewSeekbar = findViewById(R.id.percentage);
         totalBill = findViewById(R.id.totalBill);
@@ -43,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @SuppressLint("SetTextI18n")
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                textViewSeekbar.setText(String.valueOf(seekBar.getProgress()) + "%");
+                textViewSeekbar.setText(seekBar.getProgress() + "%");
             }
 
             @Override
@@ -58,19 +61,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onClick(View v) {
         calculate();
-    }
-    public void calculate(){
-        float result = 0.0f;
+        InputMethodManager inputManager = (InputMethodManager)
+                getSystemService(Context.INPUT_METHOD_SERVICE);
 
-        if (!enteredAmount.getText().toString().equals("")){
-            enteredBillFloat = Float.parseFloat(enteredAmount.getText().toString());
+        assert inputManager != null;
+        inputManager.hideSoftInputFromWindow(Objects.requireNonNull(getCurrentFocus()).getWindowToken(),
+                InputMethodManager.HIDE_NOT_ALWAYS);
+    }
+
+    @SuppressLint("SetTextI18n")
+    public void calculate() {
+        float result;
+
+        if (!enteredAmount.getText().toString().equals("")) {
+            float enteredBillFloat = Float.parseFloat(enteredAmount.getText().toString());
             result = enteredBillFloat * seekBarPercentage / 100;
-            totalResultTextView.setText("Your tip will be: $" + String.valueOf(result) + ".");
+            totalResultTextView.setText("Your tip will be: $" + result + ".");
             float total = enteredBillFloat + result;
-            totalBill.setText("Total bill: $" + String.valueOf(total));
+            totalBill.setText("Total bill: $" + total);
         } else {
             Toast.makeText(MainActivity.this, "Please enter a bill amount.", Toast.LENGTH_SHORT).show();
         }
